@@ -1,7 +1,10 @@
-﻿using Microsoft.VisualBasic;
+using Microsoft.VisualBasic;
 using System.Data;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace LaborProject
 {
@@ -10,7 +13,6 @@ namespace LaborProject
         private bool drawing;
         private Point previousPoint;
         private Pen drawingPen = new Pen(Color.Black, 2);
-
 
         private MenuStrip menuStrip;
         private ToolStripMenuItem fileToolStripMenuItem;
@@ -34,29 +36,34 @@ namespace LaborProject
         private StatusStrip statusStrip;
         private ToolStripStatusLabel toolStripStatusLabelCoordinates;
         private System.Windows.Forms.TrackBar trackBar;
+        private Stack<Bitmap> undoStack = new Stack<Bitmap>();
+        private Stack<Bitmap> redoStack = new Stack<Bitmap>();
 
         public PaintForm()
         {
             InitializeComponent();
-
             InitializeUI();
+            NewToolStripMenuItem_Click(this, EventArgs.Empty);
+
         }
 
         private void InitializeUI()
         {
-
+            this.Height = 880;
+            this.Width = 1620;
+            
             menuStrip = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem("File");
             editToolStripMenuItem = new ToolStripMenuItem("Edit");
             helpToolStripMenuItem = new ToolStripMenuItem("Help");
-            newToolStripMenuItem = new ToolStripMenuItem("New (Ctrl + N)");
-            openToolStripMenuItem = new ToolStripMenuItem("Open (Ctrl + O)");
-            saveToolStripMenuItem = new ToolStripMenuItem("Save (Ctrl + S)");
-            exitToolStripMenuItem = new ToolStripMenuItem("Exit (Ctrl + X)");
-            undoToolStripMenuItem = new ToolStripMenuItem("Undo (Ctrl + Z)");
-            redoToolStripMenuItem = new ToolStripMenuItem("Redo (Ctrl + Y)");
-            penSettingsToolStripMenuItem = new ToolStripMenuItem("Pen Settings (Ctrl + P)");
-            aboutToolStripMenuItem = new ToolStripMenuItem("About (Ctrl + A)");
+            newToolStripMenuItem = new ToolStripMenuItem("New");
+            openToolStripMenuItem = new ToolStripMenuItem("Open");
+            saveToolStripMenuItem = new ToolStripMenuItem("Save");
+            exitToolStripMenuItem = new ToolStripMenuItem("Exit");
+            undoToolStripMenuItem = new ToolStripMenuItem("Undo");
+            redoToolStripMenuItem = new ToolStripMenuItem("Redo");
+            penSettingsToolStripMenuItem = new ToolStripMenuItem("Pen Settings");
+            aboutToolStripMenuItem = new ToolStripMenuItem("About");
             toolStrip = new ToolStrip();
             createNewCanvasButton = new ToolStripButton("Blank");
             saveButton = new ToolStripButton("Save");
@@ -67,7 +74,6 @@ namespace LaborProject
             statusStrip = new StatusStrip();
             toolStripStatusLabelCoordinates = new ToolStripStatusLabel();
             trackBar = new System.Windows.Forms.TrackBar();
-
 
             newToolStripMenuItem.Click += NewToolStripMenuItem_Click;
             openToolStripMenuItem.Click += OpenToolStripMenuItem_Click;
@@ -126,12 +132,36 @@ namespace LaborProject
             trackBar.Dock = DockStyle.Bottom;
             trackBar.ValueChanged += TrackBar_ValueChanged;
             Controls.Add(trackBar);
+
+            newToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.N; // Ctrl + N для New
+            openToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O; // Ctrl + O для Open
+            saveToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.S; // Ctrl + S для Save
+            exitToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.X; // Ctrl + X для Exit
+            undoToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Z; // Ctrl + Z для Undo
+            redoToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.Z; // Ctrl + Shift + Z для Redo
+            penSettingsToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.P; // Ctrl + P для Pen Settings
+            aboutToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.A;
+
+
+        }
+
+        private void PushToUndoStack()
+        {
+            Bitmap currentImage = new Bitmap(pictureBox.Image);
+            undoStack.Push(currentImage);
+        }
+
+        private void PushToRedoStack()
+        {
+            Bitmap currentImage = new Bitmap(pictureBox.Image);
+            redoStack.Push(currentImage);
         }
 
         private void NewToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            pictureBox.Image = new Bitmap(pictureBox.Width, pictureBox.Height);
-            
+            Bitmap newImage = new Bitmap(pictureBox.Width, pictureBox.Height);
+            pictureBox.Image = newImage;
+            PushToUndoStack();
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -187,22 +217,26 @@ namespace LaborProject
         {
             if (drawing)
             {
-                using (Graphics g = Graphics.FromImage(pictureBox.Image))
+                if (e.Button == MouseButtons.Left)
                 {
-                    if (e.Button == MouseButtons.Left)
+                    using (Graphics g = Graphics.FromImage(pictureBox.Image))
                     {
                         g.DrawLine(drawingPen, previousPoint, e.Location);
-                        previousPoint = e.Location;
                     }
-                    else
-                    {
-                        Pen drawingPen = new Pen(Color.White, trackBar.Value);
-                        g.DrawLine(drawingPen, previousPoint, e.Location);
-                        previousPoint = e.Location;
-                    }
+                    previousPoint = e.Location;
                 }
-                pictureBox.Invalidate();
+                else
+                {
+                    PushToUndoStack();
+                    using (Graphics g = Graphics.FromImage(pictureBox.Image))
+                    {
+                        Pen eraserPen = new Pen(Color.White, trackBar.Value);
+                        g.DrawLine(eraserPen, previousPoint, e.Location);
+                    }
+                    previousPoint = e.Location;
+                }
             }
+            pictureBox.Invalidate();
         }
 
         private void PictureBox_MouseUp(object sender, MouseEventArgs e)
@@ -211,18 +245,30 @@ namespace LaborProject
         }
         private void TrackBar_ValueChanged(object sender, EventArgs e)
         {
-            // Изменение толщины пера
-            drawingPen.Width = trackBar.Value;
+            using (PenSettingsForm penSettingsForm = new PenSettingsForm(drawingPen))
+                drawingPen = penSettingsForm.SelectedPen;
+                drawingPen.Width = trackBar.Value;
         }
         private void UndoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Обработка действия Undo.
+            if (undoStack.Count > 0)
+            {
+                PushToRedoStack();
+                Bitmap previousImage = undoStack.Pop();
+                pictureBox.Image = new Bitmap(previousImage);
+            }
         }
 
         private void RedoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Обработка действия Redo.
+            if (redoStack.Count > 0)
+            {
+                PushToUndoStack();
+                Bitmap nextImage = redoStack.Pop();
+                pictureBox.Image = new Bitmap(nextImage);
+            }
         }
+        
 
         private void PenSettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -237,7 +283,7 @@ namespace LaborProject
 
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("author: Max", "Programmmmm", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("author: Max", "Program", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
     }

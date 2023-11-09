@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -21,10 +21,13 @@ namespace LaborProject
         {
             InitializeComponent();
 
+            this.Height = 120;
+            this.Width = 260;
+
             selectedPen = currentPen;
 
             Label styleLabel = new Label();
-            styleLabel.Text = "Стиль пера:";
+            styleLabel.Text = "Style:";
             styleLabel.Location = new Point(10, 10);
             Controls.Add(styleLabel);
 
@@ -38,7 +41,7 @@ namespace LaborProject
             Controls.Add(styleComboBox);
 
             Button applyButton = new Button();
-            applyButton.Text = "Применить";
+            applyButton.Text = "Apply";
             applyButton.Location = new Point(10, 40);
             applyButton.Click += ApplyButton_Click;
             Controls.Add(applyButton);
@@ -46,8 +49,8 @@ namespace LaborProject
         }
         private void ApplyButton_Click(object sender, EventArgs e)
         {
-            selectedPen.Color = Color.Black; // Вы можете использовать другой способ выбора цвета.
-            selectedPen.Width = 2; // Вы можете использовать другой способ выбора толщины.
+            selectedPen.Color = Color.Black;
+            selectedPen.Width = 2;
 
             if (styleComboBox.SelectedItem != null)
             {

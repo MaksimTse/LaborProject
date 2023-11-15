@@ -35,6 +35,7 @@ namespace LaborProject
         {
             InitializeComponent();
             InitializeUI();
+            ApplyDarkTheme(); 
             NewToolStripMenuItem_Click(this, EventArgs.Empty);
             this.Text = "Paint";
         }
@@ -111,6 +112,20 @@ namespace LaborProject
             aboutToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.A;
 
         }
+
+        private void ApplyDarkTheme()
+        {
+            // Задаем цвета для тёмной темы
+            Color darkBackColor = Color.FromArgb(31, 31, 31);
+            Color darkForeColor = Color.White;
+
+            this.BackColor = darkBackColor;
+            statusStrip.BackColor = darkBackColor;
+            statusStrip.ForeColor = darkForeColor;
+            trackBar.BackColor = darkBackColor;
+            trackBar.ForeColor = darkForeColor;
+        }
+
 
         private void PushToHistory(Bitmap image)
         {

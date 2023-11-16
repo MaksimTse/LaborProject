@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -35,28 +35,46 @@ namespace LaborProject
         {
             InitializeComponent();
             InitializeUI();
-            ApplyDarkTheme();
+            DarkTheme();
             NewToolStripMenuItem_Click(this, EventArgs.Empty);
             this.Text = "Paint";
         }
-
         private void InitializeUI()
         {
-            this.Height = 880;
-            this.Width = 1420;
-
             menuStrip = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem("Fail");
+            fileToolStripMenuItem.Image = Image.FromFile("document.png");
+
             editToolStripMenuItem = new ToolStripMenuItem("Redigeeri");
+            editToolStripMenuItem.Image = Image.FromFile("file-edit.png");
+
             helpToolStripMenuItem = new ToolStripMenuItem("Abi");
+            helpToolStripMenuItem.Image = Image.FromFile("interrogation.png");
+
             newToolStripMenuItem = new ToolStripMenuItem("Uus");
+            newToolStripMenuItem.Image = Image.FromFile("add-document.png");
+
             openToolStripMenuItem = new ToolStripMenuItem("Ava");
+            openToolStripMenuItem.Image = Image.FromFile("folder-open.png");
+
             saveToolStripMenuItem = new ToolStripMenuItem("Salvesta");
+            saveToolStripMenuItem.Image = Image.FromFile("disk.png");
+
             exitToolStripMenuItem = new ToolStripMenuItem("Välja");
+            exitToolStripMenuItem.Image = Image.FromFile("exit.png");
+
             undoToolStripMenuItem = new ToolStripMenuItem("Tagasi");
+            undoToolStripMenuItem.Image = Image.FromFile("undo.png");
+
             redoToolStripMenuItem = new ToolStripMenuItem("Edasi");
+            redoToolStripMenuItem.Image = Image.FromFile("redo.png");
+
             penSettingsToolStripMenuItem = new ToolStripMenuItem("Pliiatsi seaded");
+            penSettingsToolStripMenuItem.Image = Image.FromFile("pen-clip.png");
+
             aboutToolStripMenuItem = new ToolStripMenuItem("Program kohta");
+            aboutToolStripMenuItem.Image = Image.FromFile("information.png");
+
             toolStrip = new ToolStrip();
             pictureBox = new PictureBox();
             statusStrip = new StatusStrip();
@@ -85,6 +103,8 @@ namespace LaborProject
             menuStrip.Items.Add(helpToolStripMenuItem);
             Controls.Add(menuStrip);
 
+            pictureBox.MouseWheel += PictureBox_MouseWheel;
+
             pictureBox.Dock = DockStyle.Fill;
             pictureBox.BackColor = Color.White;
             pictureBox.MouseDown += PictureBox_MouseDown;
@@ -110,9 +130,8 @@ namespace LaborProject
             redoToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.Z;
             penSettingsToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.P;
             aboutToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.A;
-
         }
-        private void ApplyDarkTheme()
+        private void DarkTheme()
         {
             Color darkBackColor = Color.FromArgb(31, 31, 31);
             Color darkForeColor = Color.White;
@@ -123,15 +142,12 @@ namespace LaborProject
             trackBar.BackColor = darkBackColor;
             trackBar.ForeColor = darkForeColor;
         }
-
-
         private void PushToHistory(Bitmap image)
         {
             history = history.GetRange(0, historyIndex + 1);
             history.Add(new Bitmap(image));
             historyIndex++;
         }
-
         private void NewToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Bitmap newImage = new Bitmap(pictureBox.Width, pictureBox.Height);
@@ -140,7 +156,6 @@ namespace LaborProject
             historyIndex = -1;
             PushToHistory(newImage);
         }
-
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog dialog = new OpenFileDialog())
@@ -173,12 +188,10 @@ namespace LaborProject
                 }
             }
         }
-
         private void CloseApplicationToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
         }
-
         private void PictureBox_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -187,7 +200,6 @@ namespace LaborProject
                 previousPoint = e.Location;
             }
         }
-
         private void PictureBox_MouseMove(object sender, MouseEventArgs e)
         {
             toolStripStatusLabelCoordinates.Text = $"X: {e.X}, Y: {e.Y}";
@@ -215,8 +227,28 @@ namespace LaborProject
                 pictureBox.Invalidate();
             }
         }
+        private void PictureBox_MouseWheel(object sender, MouseEventArgs e)
+        {
+            int delta = e.Delta;
 
+            if (delta > 0)
+            {
+                pictureBox.Width = (int)(pictureBox.Width * 1.1);
+                pictureBox.Height = (int)(pictureBox.Height * 1.1);
+            }
+            else if (delta < 0)
+            {
+                pictureBox.Width = (int)(pictureBox.Width * 0.9);
+                pictureBox.Height = (int)(pictureBox.Height * 0.9);
+            }
 
+            if (pictureBox.Width < 100)
+                pictureBox.Width = 100;
+            if (pictureBox.Height < 100)
+                pictureBox.Height = 100;
+
+            pictureBox.Invalidate();
+        }
         private void PictureBox_MouseUp(object sender, MouseEventArgs e)
         {
             drawing = false;
@@ -225,7 +257,6 @@ namespace LaborProject
         {
             drawingPen.Width = trackBar.Value;
         }
-
         private void UndoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (historyIndex > 0)
@@ -235,7 +266,6 @@ namespace LaborProject
                 pictureBox.Invalidate();
             }
         }
-
         private void RedoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (historyIndex < history.Count - 1)
@@ -245,7 +275,6 @@ namespace LaborProject
                 pictureBox.Invalidate();
             }
         }
-
         private void PenSettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (PenSettingsForm penSettingsForm = new PenSettingsForm(drawingPen))
@@ -256,7 +285,6 @@ namespace LaborProject
                 }
             }
         }
-
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show("author: Max", "Program", MessageBoxButtons.OK, MessageBoxIcon.Information);

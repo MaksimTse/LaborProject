@@ -35,7 +35,7 @@ namespace LaborProject
         {
             InitializeComponent();
             InitializeUI();
-            ApplyDarkTheme(); 
+            ApplyDarkTheme();
             NewToolStripMenuItem_Click(this, EventArgs.Empty);
             this.Text = "Paint";
         }
@@ -43,20 +43,20 @@ namespace LaborProject
         private void InitializeUI()
         {
             this.Height = 880;
-            this.Width = 1620;
+            this.Width = 1420;
 
             menuStrip = new MenuStrip();
-            fileToolStripMenuItem = new ToolStripMenuItem("File");
-            editToolStripMenuItem = new ToolStripMenuItem("Edit");
-            helpToolStripMenuItem = new ToolStripMenuItem("Help");
-            newToolStripMenuItem = new ToolStripMenuItem("New");
-            openToolStripMenuItem = new ToolStripMenuItem("Open");
-            saveToolStripMenuItem = new ToolStripMenuItem("Save");
-            exitToolStripMenuItem = new ToolStripMenuItem("Exit");
-            undoToolStripMenuItem = new ToolStripMenuItem("Undo");
-            redoToolStripMenuItem = new ToolStripMenuItem("Redo");
-            penSettingsToolStripMenuItem = new ToolStripMenuItem("Pen Settings");
-            aboutToolStripMenuItem = new ToolStripMenuItem("About");
+            fileToolStripMenuItem = new ToolStripMenuItem("Fail");
+            editToolStripMenuItem = new ToolStripMenuItem("Redigeeri");
+            helpToolStripMenuItem = new ToolStripMenuItem("Abi");
+            newToolStripMenuItem = new ToolStripMenuItem("Uus");
+            openToolStripMenuItem = new ToolStripMenuItem("Ava");
+            saveToolStripMenuItem = new ToolStripMenuItem("Salvesta");
+            exitToolStripMenuItem = new ToolStripMenuItem("Välja");
+            undoToolStripMenuItem = new ToolStripMenuItem("Tagasi");
+            redoToolStripMenuItem = new ToolStripMenuItem("Edasi");
+            penSettingsToolStripMenuItem = new ToolStripMenuItem("Pliiatsi seaded");
+            aboutToolStripMenuItem = new ToolStripMenuItem("Program kohta");
             toolStrip = new ToolStrip();
             pictureBox = new PictureBox();
             statusStrip = new StatusStrip();
@@ -112,10 +112,8 @@ namespace LaborProject
             aboutToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.A;
 
         }
-
         private void ApplyDarkTheme()
         {
-            // Задаем цвета для тёмной темы
             Color darkBackColor = Color.FromArgb(31, 31, 31);
             Color darkForeColor = Color.White;
 
@@ -154,7 +152,6 @@ namespace LaborProject
                 }
             }
         }
-
         private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (SaveFileDialog dialog = new SaveFileDialog())
@@ -166,7 +163,6 @@ namespace LaborProject
                 }
             }
         }
-
         private void SelectColorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (ColorDialog dialog = new ColorDialog())
@@ -225,7 +221,6 @@ namespace LaborProject
         {
             drawing = false;
         }
-
         private void TrackBar_ValueChanged(object sender, EventArgs e)
         {
             drawingPen.Width = trackBar.Value;

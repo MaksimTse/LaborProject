@@ -11,6 +11,9 @@ namespace LaborProject
         private Point previousPoint;
         private Pen drawingPen = new Pen(Color.Black, 2);
 
+        private float zoomFactor = 1.0f; // Initial zoom factor
+        private const float zoomStep = 0.1f;
+
         private MenuStrip menuStrip;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem editToolStripMenuItem;
@@ -41,6 +44,9 @@ namespace LaborProject
         }
         private void InitializeUI()
         {
+            this.Height = 920;
+            this.Width = 1080;
+
             menuStrip = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem("Fail");
             fileToolStripMenuItem.Image = Image.FromFile("document.png");
@@ -130,7 +136,65 @@ namespace LaborProject
             redoToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.Z;
             penSettingsToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.P;
             aboutToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.A;
+
+            ToolStrip imageToolStrip = new ToolStrip();
+            imageToolStrip.Dock = DockStyle.Left;
+            Controls.Add(imageToolStrip);
+
+            ToolStripButton saveButton = new ToolStripButton();
+            saveButton.Image = Image.FromFile("Save-Disk.png");
+            saveButton.Click += SaveToolStripMenuItem_Click;
+            saveButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            imageToolStrip.Items.Add(saveButton);
+
+            ToolStripButton openButton = new ToolStripButton();
+            openButton.Image = Image.FromFile("Open-file.png");
+            openButton.Click += OpenToolStripMenuItem_Click;
+            openButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            imageToolStrip.Items.Add(openButton);
+
+            ToolStripButton penSettingsButton = new ToolStripButton();
+            penSettingsButton.Image = Image.FromFile("Pen.png");
+            penSettingsButton.Click += PenSettingsToolStripMenuItem_Click;
+            penSettingsButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            imageToolStrip.Items.Add(penSettingsButton);
+
+            ToolStripButton newButton = new ToolStripButton();
+            newButton.Image = Image.FromFile("New-file.png");
+            newButton.Click += NewToolStripMenuItem_Click;
+            newButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            imageToolStrip.Items.Add(newButton);
+
+            ToolStripButton clearButton = new ToolStripButton();
+            clearButton.Image = Image.FromFile("close-file.png");
+            clearButton.Click += CloseApplicationToolStripMenuItem_Click;
+            clearButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            imageToolStrip.Items.Add(clearButton);
         }
+        private void ApplyZoom()
+        {
+            int newWidth = (int)(pictureBox.Image.Width * zoomFactor);
+            int newHeight = (int)(pictureBox.Image.Height * zoomFactor);
+            Bitmap zoomedBitmap = new Bitmap(pictureBox.Image, newWidth, newHeight);
+
+            pictureBox.Image = zoomedBitmap;
+            pictureBox.Invalidate();
+        }
+        private void PictureBox_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (e.Delta > 0)
+            {
+                zoomFactor += zoomStep;
+            }
+            else
+            {
+                zoomFactor = Math.Max(zoomStep, zoomFactor - zoomStep);
+            }
+            ApplyZoom();
+
+            toolStripStatusLabelCoordinates.Text = $"Zoom: {zoomFactor:P0}";
+        }
+
         private void DarkTheme()
         {
             Color darkBackColor = Color.FromArgb(31, 31, 31);
@@ -227,28 +291,16 @@ namespace LaborProject
                 pictureBox.Invalidate();
             }
         }
-        private void PictureBox_MouseWheel(object sender, MouseEventArgs e)
+
+        private void ImageButton_Click(object sender, EventArgs e)
         {
-            int delta = e.Delta;
+            ToolStripButton clickedButton = (ToolStripButton)sender;
 
-            if (delta > 0)
-            {
-                pictureBox.Width = (int)(pictureBox.Width * 1.1);
-                pictureBox.Height = (int)(pictureBox.Height * 1.1);
-            }
-            else if (delta < 0)
-            {
-                pictureBox.Width = (int)(pictureBox.Width * 0.9);
-                pictureBox.Height = (int)(pictureBox.Height * 0.9);
-            }
-
-            if (pictureBox.Width < 100)
-                pictureBox.Width = 100;
-            if (pictureBox.Height < 100)
-                pictureBox.Height = 100;
-
-            pictureBox.Invalidate();
+            int imageIndex = clickedButton.Owner.Items.IndexOf(clickedButton) + 1;
+            string imagePath = $"image{imageIndex}.png"; // Adjust the naming convention
+            pictureBox.Image = Image.FromFile(imagePath);
         }
+
         private void PictureBox_MouseUp(object sender, MouseEventArgs e)
         {
             drawing = false;
